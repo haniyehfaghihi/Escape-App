@@ -2,24 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* نام خانواده = PostScript داخل TTF یکان بخ FaNum (src/constants/yekanFonts.ts) */
 @layer utilities {
   .font-sans {
-    font-family: 'YekanBakh-Regular';
+    font-family: 'YekanBakhFaNum-Regular';
     font-weight: 400;
   }
 
   .font-medium {
-    font-family: 'YekanBakh-Medium';
+    font-family: 'YekanBakhFaNum-Medium';
     font-weight: 500;
   }
 
   .font-bold {
-    font-family: 'YekanBakh-Bold';
+    font-family: 'YekanBakhFaNum-Bold';
     font-weight: 700;
   }
 
   .font-extrabold {
-    font-family: 'YekanBakh-Heavy';
+    font-family: 'YekanBakhFaNum-Heavy';
     font-weight: 800;
   }
 }

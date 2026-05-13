@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowBottom } from "@/src/components/icons/arrow-bottom";
+import { sanitizeJalaliDateTypedInput } from "@/src/utils/inputSanitize";
 
 // بخش‌های مالی از منوی تب مالی (query: section)
 type FinanceSection = "my-sales" | "discount-code" | "affiliate";
@@ -439,17 +440,51 @@ export default function SalesScreen() {
       <View className="flex flex-row gap-2">
         <TextInput
           className="w-full max-w-[136px] h-10 bg-[#F9F9F9] rounded-lg px-4 py-2 border border-[#E2E8F0]"
+          style={{
+            shadowColor: "#0F172B",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.08,
+            shadowRadius: 2,
+            elevation: 1,
+            textAlign: "left",
+            writingDirection: "ltr",
+          }}
           placeholder="1405.01.01"
           value={dateFromInput}
-          onChangeText={setDateFromInput}
+          onChangeText={(t) =>
+            setDateFromInput(sanitizeJalaliDateTypedInput(t))
+          }
+          keyboardType="numbers-and-punctuation"
+          autoCorrect={false}
         />
         <TextInput
           className="w-full max-w-[136px] h-10 bg-[#F9F9F9] rounded-lg px-4 py-2 border border-[#E2E8F0]"
+          style={{
+            shadowColor: "#0F172B",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.08,
+            shadowRadius: 2,
+            elevation: 1,
+            textAlign: "left",
+            writingDirection: "ltr",
+          }}
           placeholder="1405.02.01"
           value={dateToInput}
-          onChangeText={setDateToInput}
+          onChangeText={(t) => setDateToInput(sanitizeJalaliDateTypedInput(t))}
+          keyboardType="numbers-and-punctuation"
+          autoCorrect={false}
         />
-        <Pressable className="bg-[#FD7013] rounded-lg flex items-cemter justify-center w-[81px]"  onPress={applyCustomDates}>
+        <Pressable
+          className="bg-[#FD7013] rounded-lg flex items-center justify-center w-[81px]"
+          style={{
+            shadowColor: "#CA5608",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 1,
+            shadowRadius: 2,
+            elevation: 1,
+          }}
+          onPress={applyCustomDates}
+        >
           <Text className="text-center text-white text-sm font-bold">مشاهده</Text>
         </Pressable>
       </View>

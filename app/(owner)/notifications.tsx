@@ -84,6 +84,13 @@ async function persistReadNoticeIds(ids: string[]): Promise<void> {
   }
 }
 
+/** برای نشانگر هدر: آیا حداقل یک اعلان (مطابق لیست فعلی) هنوز خوانده نشده است؟ */
+export async function ownerHasUnreadNotices(): Promise<boolean> {
+  if (MOCK_NOTICES.length === 0) return false;
+  const read = await loadReadNoticeIds();
+  return MOCK_NOTICES.some((n) => !read.includes(n.id));
+}
+
 /** نگاشت kind هر اعلان به کامپوننت آیکن ۴۴×۴۴ */
 function NoticeKindIcon({ kind }: { kind: NoticeKind }) {
   const sizeProps = { width: 44, height: 44 } as const;
@@ -165,7 +172,7 @@ export default function NotificationsScreen() {
   return (
     <View className="flex-1 bg-[#F2F6FA]">
       {/* ردیف جدا از هدر سراسری اپ: فقط دکمهٔ بازگشت (هدر تب هنوز بالاست) */}
-      <View className="flex flex-row-reverse items-center justify-between px-4 py-2">
+      <View className="flex flex-row-reverse items-center justify-between px-4 pt-2">
         <Pressable
           onPress={goBack}
           hitSlop={12}
@@ -175,7 +182,7 @@ export default function NotificationsScreen() {
           <Ionicons name="arrow-back" size={26} color="#0F172B" />
         </Pressable>
       </View>
-
+ 
       <ScrollView
         className="flex-1 px-4 pt-4"
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}

@@ -102,12 +102,14 @@ function CancelHistoryItemCard({ item }: { item: OwnerCancelHistoryItemDto }) {
   return (
     <View className="mt-7 flex items-center justify-between border-t border-[#E4EBF0] pt-5">
       <View className="flex w-full flex-row items-center justify-between">
+         
         <View className="flex flex-row items-center gap-2">
           <Text className="text-sm font-bold text-[#889BAD]">نوع درخواست</Text>
           <Text className="text-sm font-bold" style={{ color: timingUi.color }}>
             {timingUi.label}
           </Text>
-          <Text className="text-sm font-bold text-[#889BAD]">.</Text>
+          <View className="h-[6px] w-[6px] rounded-full bg-[#62748E]" />
+
           <Text className="text-sm font-bold" style={{ color: sourceUi.color }}>
             {sourceUi.label}
           </Text>
@@ -117,6 +119,7 @@ function CancelHistoryItemCard({ item }: { item: OwnerCancelHistoryItemDto }) {
           <Text className="text-sm font-bold text-[#889BAD]">تاریخ درخواست</Text>
           <Text className="text-sm font-bold">{item.requestDate}</Text>
         </View>
+
       </View>
 
       <View className="mt-4 flex w-full flex-row items-center justify-between">

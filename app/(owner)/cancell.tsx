@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRef, useState } from 'react';
 import { AttentionIcon } from '@/src/components/icons/attention';
 import { TimeIcon } from '@/src/components/icons/time';
@@ -88,6 +89,39 @@ const CANCEL_REQUESTS: CancelRequest[] = [
   },
 ];
 
+const READ_CANCEL_REQUEST_IDS_KEY = 'escape_owner_read_cancel_request_ids';
+
+async function loadReadCancelRequestIds(): Promise<string[]> {
+  try {
+    const raw = await AsyncStorage.getItem(READ_CANCEL_REQUEST_IDS_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function persistReadCancelRequestIds(ids: string[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(READ_CANCEL_REQUEST_IDS_KEY, JSON.stringify(ids));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** برای نشانگر تب کنسلی در `_layout` */
+export async function ownerHasUnreadCancellRequests(): Promise<boolean> {
+  if (CANCEL_REQUESTS.length === 0) return false;
+  const read = await loadReadCancelRequestIds();
+  return CANCEL_REQUESTS.some((r) => !read.includes(r.id));
+}
+
+/** با باز شدن تب کنسلی همهٔ درخواست‌های فعلی «دیده‌شده» ثبت می‌شوند. */
+export async function markAllCancellRequestsSeen(): Promise<void> {
+  await persistReadCancelRequestIds(CANCEL_REQUESTS.map((r) => r.id));
+}
+
 function CancelRequestCard({ request }: { request: CancelRequest }) {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const detailsAnimation = useRef(new Animated.Value(0)).current;
@@ -105,7 +139,7 @@ function CancelRequestCard({ request }: { request: CancelRequest }) {
   };
 
   return (
-    <View className="mt-8 overflow-hidden rounded-t-lg border border-[#E8EDF1] bg-[#EDF4FF]">
+    <View className="mt-8 overflow-hidden rounded-xl border border-[#E8EDF1] bg-[#EDF4FF]">
       <View className="flex flex-col items-start justify-start pt-5">
         <View className="flex flex-row justify-between w-full px-5">
           <View className="flex flex-row items-center gap-3">
@@ -124,16 +158,16 @@ function CancelRequestCard({ request }: { request: CancelRequest }) {
           </View>
           <View className="flex flex-row items-center rounded-lg bg-white px-2 py-1">
             <Hourglass width={20} height={20} />
-            <Text className="text-base font-bold text-[#889BAD]">{request.submittedAgo}</Text>
+            <Text className="text-base font-extrabold text-[#889BAD]">{request.submittedAgo}</Text>
           </View>
         </View>
 
         <View className="mt-3 flex-row flex-wrap items-center gap-x-1.5 gap-y-0.5 px-5">
           <Text className="text-base font-bold text-[#09192D]">درخواست لغو</Text>
           <Text className="text-base font-bold text-[#889BAD]">سانس</Text>
-          <Text className="text-base font-bold text-[#889BAD]">{request.sessionDay}</Text>
+          <Text className="text-base font-bold ">{request.sessionDay}</Text>
           <Text className="text-base font-bold text-[#FD7013]">{request.sessionDate}</Text>
-          <Text className="text-base font-bold text-[#889BAD]">
+          <Text className="text-base font-bold ">
             {request.sessionMonth}-{request.sessionTime}
           </Text>
         </View>
@@ -143,7 +177,7 @@ function CancelRequestCard({ request }: { request: CancelRequest }) {
           <Text className="text-[#09192D]">{request.roomLabel}</Text>
         </Text>
 
-        <View className="mb-5 mt-3 w-full flex-row items-center gap-4 px-5">
+        <View className="mb-5 mt-4 w-full flex-row items-center gap-4 px-5">
           <Pressable className="flex h-[40px] w-[94px] shrink-0 flex-row items-center justify-center rounded-lg bg-white px-2 py-1">
             <Text className="text-base font-bold text-[#9AA8B7]">رد کردن</Text>
           </Pressable>
@@ -155,13 +189,13 @@ function CancelRequestCard({ request }: { request: CancelRequest }) {
 
       <Pressable
         onPress={toggleDetails}
-        className="flex w-full items-center justify-center gap-2 rounded-b-lg border border-[#E8EDF1] pt-3.5"
+        className="flex w-full items-center justify-center gap-2 rounded-b-xl border border-[#E8EDF1] pt-1.5"
         style={{ backgroundColor: '#FFFFFF' }}
         accessibilityRole="button"
         accessibilityLabel={detailsExpanded ? 'بستن' : 'مشاهده جزییات'}
       >
         <View className="flex flex-row items-center justify-center gap-2">
-          <Text className="text-base font-bold text-[#0F172B]">
+          <Text className="text-base font-bold text-[#889BAD]">
             {detailsExpanded ? 'بستن' : 'مشاهده جزییات'}
           </Text>
           <Animated.View
@@ -262,19 +296,19 @@ export default function WalletScreen() {
         <Text className="text-xl font-bold text-[#62748E]">درخواست ها</Text>
         <Pressable
           onPress={() => router.push('/(owner)/cancel-history')}
-          className="flex w-[155px] flex-row justify-center gap-2 rounded-lg bg-[#F1F5F9] px-3 py-1"
+          className="flex w-[130px] h-[38px] flex-row justify-center gap-2 rounded-lg bg-[#F1F5F9] items-center"
           accessibilityRole="button"
           accessibilityLabel="تاریخچه لغو"
-        >
+        > 
           <Text className="text-base font-bold text-[#0F172B]">تاریخچه لغو</Text>
           <TimeIcon width={20} height={20} />
         </Pressable>
       </View>
 
-      <View className="mt-5 flex flex-row items-start justify-start gap-2">
+      <View className="mt-5 flex flex-row items-start justify-start gap-2 mb-5">
         <AttentionIcon width={20} height={20} />
         <Text className="text-sm font-bold text-[#BF9A00]">
-          از بخش "تاریخچه لغو" می‌توانید تمام سوابق لغو و درخواست‌ها را مشاهده کنید.
+          از بخش &quot;تاریخچه لغو&quot; می‌توانید تمام سوابق لغو و درخواست‌ها را مشاهده کنید.
         </Text>
       </View>
 

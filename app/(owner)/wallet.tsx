@@ -19,6 +19,7 @@ import { WalletSuccessCheckIcon } from "@/src/components/icons/wallet-success-ch
 import { WalletTransactionCreditIcon } from "@/src/components/icons/wallet-transaction-credit";
 import { WalletTransactionDebitIcon } from "@/src/components/icons/wallet-transaction-debit";
 import { ArrowBottom } from "@/src/components/icons/arrow-bottom";
+import { normalizeToAsciiDigits } from "@/src/utils/inputSanitize";
 
 type WalletSection = "settlements" | "transactions";
 
@@ -140,15 +141,6 @@ const MOCK_WALLET_ACTIVITIES: WalletActivityItem[] = [
   })),
 ];
 
-
-function digitsOnly(text: string): string {
-  const normalized = text
-    .replace(/[۰-۹]/g, (ch) => String(ch.charCodeAt(0) - 0x06f0))
-    .replace(/[٠-٩]/g, (ch) => String(ch.charCodeAt(0) - 0x0660));
-
-  return normalized.replace(/\D/g, "");
-}
-
 function formatTomans(n: number): string {
   try {
     return n.toLocaleString("fa-IR");
@@ -158,7 +150,7 @@ function formatTomans(n: number): string {
 }
 
 function parseAmountDigits(text: string): number {
-  const digits = digitsOnly(text);
+  const digits = normalizeToAsciiDigits(text);
   if (!digits) return 0;
   return Number(digits);
 }
@@ -170,30 +162,46 @@ function WalletAmountInput({
   placeholder,
   ...props
 }: TextInputProps) {
-  const digits = digitsOnly(String(value ?? ""));
-  const displayValue = digits ? formatTomans(Number(digits)) : "";
-  const showPlaceholder = !displayValue && Boolean(placeholder);
+  const digits = normalizeToAsciiDigits(String(value ?? ""));
+  const showPlaceholder = !digits && Boolean(placeholder);
+  const formattedHint =
+    digits.length > 0 ? `${formatTomans(Number(digits))} تومان` : null;
 
   return (
-    <View className={`relative ${className ?? "w-full"}`}>
-      <TextInput
-        {...props}
-        value={displayValue}
-        onChangeText={(text) => onChangeText?.(digitsOnly(text))}
-        placeholder=""
-        className="h-[50px] w-full rounded-lg bg-white px-4 font-bold"
-        style={{ fontSize: 20, color: "#04B968" }}
-        keyboardType="number-pad"
-        returnKeyType="done"
-      />
-      {showPlaceholder ? (
+    <View className={`${className ?? "w-full"}`}>
+      <View className="relative w-full">
+        <TextInput
+          {...props}
+          value={digits}
+          onChangeText={(text) => onChangeText?.(normalizeToAsciiDigits(text))}
+          placeholder=""
+          className="h-[50px] w-full rounded-lg bg-white px-4 font-bold"
+          style={{
+            fontSize: 20,
+            color: "#04B968",
+            textAlign: "left",
+            writingDirection: "ltr",
+          }}
+          keyboardType="number-pad"
+          returnKeyType="done"
+        />
+        {showPlaceholder ? (
+          <Text
+            pointerEvents="none"
+            numberOfLines={1}
+            className="absolute left-4 right-4 font-bold text-[#889BAD]"
+            style={{ top: 0, height: 50, lineHeight: 50, fontSize: 16 }}
+          >
+            {placeholder}
+          </Text>
+        ) : null}
+      </View>
+      {formattedHint ? (
         <Text
-          pointerEvents="none"
-          numberOfLines={1}
-          className="absolute left-4 right-4 font-bold text-[#889BAD]"
-          style={{ top: 0, height: 50, lineHeight: 50, fontSize: 16 }}
+          className="mt-1 px-1 text-xs font-bold text-[#889BAD]"
+          style={{ textAlign: "right" }}
         >
-          {placeholder}
+          {formattedHint}
         </Text>
       ) : null}
     </View>
@@ -409,7 +417,7 @@ export default function WalletScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="w-full items-center">
+        <View className="w-full items-center mb-5 ">
           <View className="relative w-[260px] h-[168px]">
             <BgWallet width={260} height={168} />
             <View className="absolute left-5 top-4 items-start gap-2 flex flex-row items-center justify-center">

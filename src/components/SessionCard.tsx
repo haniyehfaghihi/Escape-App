@@ -2,7 +2,11 @@
 import { Pressable, Text, View } from "react-native";
 import { Eye, EyePink } from "./icons";
 
-export type SessionCardVariant = "closed" | "open" | "reserved" | "cancel-request";
+export type SessionCardVariant =
+  | "closed"
+  | "open"
+  | "reserved"
+  | "cancel-request";
 
 export type SessionCardData = {
   id: string;
@@ -60,7 +64,8 @@ function getCardStyles(variant: SessionCardVariant) {
 
 export default function SessionCard({ item, onPress }: SessionCardProps) {
   const styles = getCardStyles(item.variant);
-  const hasTrailingIcon = item.variant === "reserved" || item.variant === "cancel-request";
+  const hasTrailingIcon =
+    item.variant === "reserved" || item.variant === "cancel-request";
 
   return (
     <View
@@ -81,20 +86,24 @@ export default function SessionCard({ item, onPress }: SessionCardProps) {
 
       <Pressable
         className={styles.actionClassName}
-        onPress={
-          item.variant === "reserved" || item.variant === "cancel-request"
-            ? () => onPress?.(item)
-            : undefined
-        }
+        onPress={() => onPress?.(item)}
       >
         {hasTrailingIcon ? (
           <>
             <View className="flex-1">
               <Text className={styles.titleTextClassName}>{item.title}</Text>
-              {item.subtitle ? <Text className={styles.subtitleTextClassName}>{item.subtitle}</Text> : null}
+              {item.subtitle ? (
+                <Text className={styles.subtitleTextClassName}>
+                  {item.subtitle}
+                </Text>
+              ) : null}
             </View>
-            {item.variant === "reserved" ? <Eye width={18} height={18} /> : null}
-            {item.variant === "cancel-request" ? <EyePink width={18} height={18} /> : null}
+            {item.variant === "reserved" ? (
+              <Eye width={18} height={18} />
+            ) : null}
+            {item.variant === "cancel-request" ? (
+              <EyePink width={18} height={18} />
+            ) : null}
           </>
         ) : (
           <Text className={styles.titleTextClassName}>{item.title}</Text>

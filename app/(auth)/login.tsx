@@ -12,6 +12,22 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { checkUserExists } from '../../src/api/authService'; // فراخوانی سرویس
 import { BrandLogo } from "../../src/components/BrandLogo";
+import { normalizeToAsciiDigits } from "@/src/utils/inputSanitize";
+
+/**
+ * موبایل ایران: ۱۱ رقم با پیشوند ۰۹، یا ۱۰ رقم با پیشوند ۹ (بدون صفر اول).
+ * خروجی برای API همیشه ۱۱ رقم با ۰۹.
+ */
+function normalizeIranMobile(digits: string): string | null {
+  const d = normalizeToAsciiDigits(digits);
+  if (/^09\d{9}$/.test(d)) return d;
+  if (/^9\d{9}$/.test(d)) return `0${d}`;
+  return null;
+}
+
+function isValidIranMobileInput(digits: string): boolean {
+  return normalizeIranMobile(digits) !== null;
+}
 
 export default function PhoneInputScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -19,31 +35,31 @@ export default function PhoneInputScreen() {
   const [isLoading, setIsLoading] = useState(false); // استیت لودینگ
   const [errorMessage, setErrorMessage] = useState(''); // استیت خطا
 
-  // اعتبارسنجی ساده شماره موبایل (۱۱ رقم و شروع با 09)
-  const isFormValid = phoneNumber.length === 11 && phoneNumber.startsWith('09');
+  const isFormValid = isValidIranMobileInput(phoneNumber);
 
   const handlePhoneSubmit = async () => {
-    if (!isFormValid) return;
+    const mobile = normalizeIranMobile(phoneNumber);
+    if (!mobile) return;
 
     setIsLoading(true);
     setErrorMessage('');
 
     try {
       // ارسال درخواست به سرور برای بررسی وضعیت کاربر
-      const response: any = await checkUserExists(phoneNumber);
+      const response: any = await checkUserExists(mobile);
       
       if (response.exists) {
         // کاربر قدیمی است، برو به صفحه رمز عبور
         router.push({
           pathname: '/(auth)/password',
-          params: { phoneNumber: phoneNumber }
+          params: { phoneNumber: mobile }
         });
       } else {
         // کاربر جدید است، برو به صفحه OTP برای ثبت نام
         // (فعلا چون ما exists را همیشه true گذاشتیم، این بخش اجرا نمی‌شود تا زمانی که API واقعی بیاید)
         router.push({
           pathname: '/(auth)/otp',
-          params: { phoneNumber: phoneNumber, isSignUp: 'true' }
+          params: { phoneNumber: mobile, isSignUp: 'true' }
         });
       }
     } catch (error: any) {
@@ -69,9 +85,9 @@ export default function PhoneInputScreen() {
         <View className="px-6 pb-10">
           <View className="items-center mb-10">
             <View className="mb-6 items-center">
-              <Text className="text-2xl font-extrabold text-Orange mb-2 tracking-tight">
+              {/* <Text className="text-2xl font-extrabold text-Orange mb-2 tracking-tight">
                 logo
-              </Text>
+              </Text> */}
               <BrandLogo width={126} height={42} />
             </View>
           </View>
@@ -87,11 +103,19 @@ export default function PhoneInputScreen() {
                 placeholderTextColor="#94a3b8"
                 value={phoneNumber}
                 onChangeText={(text) => {
-                setPhoneNumber(text);
-                setErrorMessage(''); // پاک کردن خطا با تغییر متن
+                  const next = normalizeToAsciiDigits(text).slice(0, 11);
+                  setPhoneNumber(next);
+                  setErrorMessage("");
                 }}
-                keyboardType="phone-pad"
+                keyboardType="number-pad"
+                inputMode="numeric"
+                autoCorrect={false}
+                autoCapitalize="none"
+                autoComplete="tel"
+                textContentType="telephoneNumber"
                 maxLength={11}
+                importantForAutofill="yes"
+                style={{ writingDirection: "ltr" }}
               />
             </View>
 
@@ -103,11 +127,11 @@ export default function PhoneInputScreen() {
             <Pressable
               onPress={handlePhoneSubmit}
               className={`w-full rounded-2xl py-4 mt-4 border-b-2 ${
-                phoneNumber.length >= 10
-                  ? "bg-Orange border-Orange active:bg-Orange]"
+                isValidIranMobileInput(phoneNumber)
+                  ? "bg-Orange border-Orange active:bg-Orange"
                   : "bg-slate-300 border-slate-400"
               }`}
-              disabled={phoneNumber.length < 10}
+              disabled={!isValidIranMobileInput(phoneNumber)}
             >
               {isLoading ? (
             <ActivityIndicator color="white" />

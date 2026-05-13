@@ -14,11 +14,12 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      /* PostScript داخل TTF: YekanBakhFaNum-* — هماهنگ با global.css و useFonts */
       fontFamily: {
-        sans: ['YekanBakh-Regular'],
-        medium: ['YekanBakh-Medium'],
-        bold: ['YekanBakh-Bold'],
-        heavy: ['YekanBakh-Heavy'],
+        sans: ['YekanBakhFaNum-Regular'],
+        medium: ['YekanBakhFaNum-Medium'],
+        bold: ['YekanBakhFaNum-Bold'],
+        heavy: ['YekanBakhFaNum-Heavy'],
       },
       colors: {
         Orange: {

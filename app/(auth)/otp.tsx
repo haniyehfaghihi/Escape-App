@@ -12,6 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { sendOtp, verifyOtp } from "../../src/api/authService";
 import { useAuth } from "../../src/context/AuthContext";
+import { normalizeToAsciiDigits } from "@/src/utils/inputSanitize";
 
 const OTP_LENGTH = 4;
 /** در mock فعلی کد صحیح: ۱۲۳۴ (مثل رمز نمونه) */
@@ -52,14 +53,28 @@ export default function OtpScreen() {
   };
 
   const handleChange = (text: string, index: number) => {
-    const numericValue = text.replace(/[^0-9]/g, "");
-    const newCode = [...otpCode];
-    newCode[index] = numericValue;
-    setOtpCode(newCode);
+    const numeric = normalizeToAsciiDigits(text);
 
+    if (numeric.length > 1) {
+      const newCode = [...otpCode];
+      const maxFill = OTP_LENGTH - index;
+      const chars = numeric.slice(0, maxFill).split("");
+      chars.forEach((ch, i) => {
+        newCode[index + i] = ch;
+      });
+      setOtpCode(newCode);
+      if (errorMessage) setErrorMessage("");
+      const lastIdx = Math.min(index + chars.length - 1, OTP_LENGTH - 1);
+      inputRefs.current[lastIdx]?.focus();
+      return;
+    }
+
+    const newCode = [...otpCode];
+    newCode[index] = numeric;
+    setOtpCode(newCode);
     if (errorMessage) setErrorMessage("");
 
-    if (numericValue && index < OTP_LENGTH - 1) {
+    if (numeric && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -170,7 +185,6 @@ export default function OtpScreen() {
                         : "border-slate-200"
                   }`}
                   keyboardType="number-pad"
-                  maxLength={1}
                   value={digit}
                   onChangeText={(text) => handleChange(text, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
